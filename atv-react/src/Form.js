@@ -64,10 +64,6 @@ export default class Form extends React.Component {
         return d[2] + '/' + d[1] + '/' + d[0];
     }
 
-    formatData = data => {
-        let d = data.split('-');
-        return d[2] + '/' + d[1] + '/' + d[0];
-        }
 //    componentDidMount() {
     localidades = e => {
         if (e.target.value.length >= 3) {
