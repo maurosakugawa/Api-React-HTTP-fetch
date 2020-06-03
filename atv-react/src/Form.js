@@ -5,14 +5,16 @@ export default class Form extends React.Component {
     constructor() {
         super();
         this.state = {
-            //            cid: '',
             nome: '',
             cidades: '',
             cidade: '',
             previsao: '',
             erroMsg: ''
         };
+        this.fetchCidades = this.fetchCidades.bind(this);
+        this.fetchClima = this.fetchClima.bind(this);
     }
+
 
     getTempo = sigla => {
         return {
@@ -65,7 +67,7 @@ export default class Form extends React.Component {
     }
 
     //    componentDidMount() {
-    localidades = e => {
+    fetchCidades = e => {
         this.setState({
             nome: e.target.value
         });
@@ -73,8 +75,8 @@ export default class Form extends React.Component {
             let nome = e.target.value.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
             this.setState({ erro: '' });
             fetch(`http://servicos.cptec.inpe.br/XML/listaCidades?city=${nome}`, { method: "GET" }, {
-                //  mode: 'no-cors',
-                mode: 'cors',
+                mode: 'no-cors',
+             //   mode: 'cors',
                 method: 'GET',
                 headers: new Headers({
                     'Accept': 'application/xml',
@@ -99,14 +101,14 @@ export default class Form extends React.Component {
                         lista.push(<option key={index} value={obj.childNodes[2].childNodes[0].nodeValue}>{obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}</option>)
                     });
                     this.setState({ cidades: lista });
-                    console.log('Cidades: ' + cidades);
+  //                  console.log('Cidades: ' + cidades);
 
                 })
                 .catch(erro => console.log(erro));
         }
     }
 
-    clima = e => {
+    fetchClima = e => {
         if (e.target.value !== '') {
 
             fetch(`http://servicos.cptec.inpe.br/XML/cidade/4963/previsao.xml`, { method: 'GET' })
@@ -120,29 +122,32 @@ export default class Form extends React.Component {
     }
 
     render() {
-
+        var {lista} = cidades.map(function(item, indice){
+            return item.cidade;
+         });
         return (
             <div>
-                <form onSubmit={this.submit} >
+                <form onSubmit={this.fetchCidades} >
                     <div>
-                        <label>Nome</label>
-                        <input type='text' name='cid' value={this.state.cid}
-                            onChange={e => this.setState({
-                                nome: e.target.value
-                            })
-                            }
+                    <label>Nome</label>
+                        <input type='text' value={this.state.nome}
+                            onChange={this.fetchCidades}
+                            placeholder="digite o nome completo"
                         />
+                        <label>Cidade</label>
+                        <select onClick={this.fetchClima} value={this.state.lista}
+                            onChange={this.changeCidade} defaultValue='' >
 
+                                <option>{lista}</option>
 
+                        </select>
                     </div>
                     <div>
                         {this.state.erroMsg}
                     </div>
                 </form>
-
             </div>
         );
     }
 }
-
 
