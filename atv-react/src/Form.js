@@ -1,9 +1,9 @@
 import React from 'react';
-// import Tabela from './Tabela';
+import './index.css';
 
 export default class Form extends React.Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             nome: '',
             cidades: '',
@@ -72,11 +72,12 @@ export default class Form extends React.Component {
             nome: e.target.value
         });
         if (e.target.value.length >= 3) {
+            e.preventDefault();
             let nome = e.target.value.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
             this.setState({ erro: '' });
             fetch(`http://servicos.cptec.inpe.br/XML/listaCidades?city=${nome}`, { method: "GET" }, {
                 mode: 'no-cors',
-             //   mode: 'cors',
+                //   mode: 'cors',
                 method: 'GET',
                 headers: new Headers({
                     'Accept': 'application/xml',
@@ -96,58 +97,86 @@ export default class Form extends React.Component {
                     let xml = parser.parseFromString(str, "text/xml");
                     let cidades = xml.getElementsByTagName('cidades')[0]; // Obter a tag cidades
                     let lista = [];
-                    lista.push(<option key='1' value='' >Selecione uma cidade</option>)
+                    lista.push(<option key='-i' value='' >Selecione uma cidade</option>)
                     cidades.childNodes.forEach((obj, index) => {
-                        lista.push(<option key={index} value={obj.childNodes[2].childNodes[0].nodeValue}>{obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}</option>)
+                        return lista.push(<option key={index} value={obj.childNodes[2].childNodes[0].nodeValue}>{obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}</option>)
                     });
-                    this.setState({ cidades: lista });
-  //                  console.log('Cidades: ' + cidades);
+
+                    this.setState({cidades: lista})
+                    console.log(cidades);
 
                 })
                 .catch(erro => console.log(erro));
         }
     }
 
+
+
     fetchClima = e => {
         if (e.target.value !== '') {
-
             fetch(`http://servicos.cptec.inpe.br/XML/cidade/4963/previsao.xml`, { method: 'GET' })
                 .then(response => response.arrayBuffer())
                 .then(buffer => {
                     let decoder = new TextDecoder("iso-8859-1");
                     return decoder.decode(buffer);
                 })
-                .then(temp => { console.log(temp); })
+                .then(str => { // console.log(str);
+                    let parser = new window.DOMParser()
+                    let xml = parser.parseFromString(str, "text/xml");
+ //                   console.log(xml);
+                    let cidade = xml.getElementsByTagName('nome')[0];
+   //                 console.log(cidade);
+                    let UF = xml.getElementsByTagName('uf')[0];
+    //                console.log(UF);
+                    let diaSearch = xml.getElementsByTagName('atualizacao')[0];
+     //               console.log(diaSearch);
+                    let prev = xml.getElementsByTagName('previsao')[0];
+     //               console.log(prev);
+                    let lista = [];
+     //               var tabela = '';
+     //               tabela.push(<thead>{cidade} - {UF} - {diaSearch}}</thead>)
+      //              cidade.childNodes.forEach((obj, index) => {
+     //                  lista.push(<option key={index} value={obj.childNodes[2].childNodes[0].nodeValue}>{obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}</option>)
+     //               });
+
+    //                this.setState({ tabela: {tabela} });
+                });
+            }
+        };
+
+        render(){
+
+            var cidades = this.state.cidades;
+            console.log(cidades);
+     //       var fetchCidades = this.state.fetchCidades;
+            return (
+                <div>
+                    <form onSubmit={this.fetchCidades} >
+                        <div>
+                            <label>Nome:
+                            <input type='text' value={this.state.value}
+                                onChange={this.fetchCidades}
+                                placeholder="digite o nome completo"
+                            />
+                            </label>
+                        </div>
+                        <div>
+                            <label>Cidades:
+                            <select onClick={this.fetchClima} value={this.state.lista}
+                                onChange={this.fetchClima} defaultValue="Selecione a cidade" >
+
+                                          {cidades}
+
+                            </select>
+                            </label>
+                        </div>
+                        <div>
+                            {this.state.erroMsg}
+                        </div>
+                    </form>
+                </div>
+            );
         }
-    }
-
-    render() {
-        var {lista} = cidades.map(function(item, indice){
-            return item.cidade;
-         });
-        return (
-            <div>
-                <form onSubmit={this.fetchCidades} >
-                    <div>
-                    <label>Nome</label>
-                        <input type='text' value={this.state.nome}
-                            onChange={this.fetchCidades}
-                            placeholder="digite o nome completo"
-                        />
-                        <label>Cidade</label>
-                        <select onClick={this.fetchClima} value={this.state.lista}
-                            onChange={this.changeCidade} defaultValue='' >
-
-                                <option>{lista}</option>
-
-                        </select>
-                    </div>
-                    <div>
-                        {this.state.erroMsg}
-                    </div>
-                </form>
-            </div>
-        );
-    }
+    
 }
 
