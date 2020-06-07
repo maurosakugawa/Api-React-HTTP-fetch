@@ -1,6 +1,6 @@
 import React from 'react';
 import Form from './Form';
-import Tabela from './Tabela';
+
 
 
 export default class App extends React.Component {
@@ -8,7 +8,7 @@ export default class App extends React.Component {
     return (
       <div>
         <Form />
-        <Tabela />
+
       </div>
     );
   }

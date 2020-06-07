@@ -8,13 +8,10 @@ export default class Form extends React.Component {
             nome: '',
             cidades: '',
             cidade: '',
-            previsao: '',
+            cod: '',
             erroMsg: ''
         };
-        this.fetchCidades = this.fetchCidades.bind(this);
-        this.fetchClima = this.fetchClima.bind(this);
     }
-
 
     getTempo = sigla => {
         return {
@@ -66,7 +63,6 @@ export default class Form extends React.Component {
         return d[2] + '/' + d[1] + '/' + d[0];
     }
 
-    //    componentDidMount() {
     fetchCidades = e => {
         this.setState({
             nome: e.target.value
@@ -76,8 +72,7 @@ export default class Form extends React.Component {
             let nome = e.target.value.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
             this.setState({ erro: '' });
             fetch(`http://servicos.cptec.inpe.br/XML/listaCidades?city=${nome}`, { method: "GET" }, {
-                mode: 'no-cors',
-                //   mode: 'cors',
+                mode: 'cors',
                 method: 'GET',
                 headers: new Headers({
                     'Accept': 'application/xml',
@@ -96,25 +91,22 @@ export default class Form extends React.Component {
                     let parser = new window.DOMParser()
                     let xml = parser.parseFromString(str, "text/xml");
                     let cidades = xml.getElementsByTagName('cidades')[0]; // Obter a tag cidades
+                    let ID = xml.getElementsByTagName('id')[0];
+                    console.log(ID);
                     let lista = [];
-                    lista.push(<option key='-i' value='' >Selecione uma cidade</option>)
+                    lista.push(<option key='-i' value='' >Selecione</option>)
                     cidades.childNodes.forEach((obj, index) => {
                         return lista.push(<option key={index} value={obj.childNodes[2].childNodes[0].nodeValue}>{obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}</option>)
                     });
-
-                    this.setState({cidades: lista})
-                    console.log(cidades);
-
+                    this.setState({ cidades: lista })
                 })
                 .catch(erro => console.log(erro));
         }
     }
 
-
-
-    fetchClima = e => {
+    fetchClima = e => { console.log(e.target.value)
         if (e.target.value !== '') {
-            fetch(`http://servicos.cptec.inpe.br/XML/cidade/4963/previsao.xml`, { method: 'GET' })
+            fetch(`http://servicos.cptec.inpe.br/XML/cidade/${e.target.value}/previsao.xml`, { method: 'GET' })
                 .then(response => response.arrayBuffer())
                 .then(buffer => {
                     let decoder = new TextDecoder("iso-8859-1");
@@ -123,60 +115,62 @@ export default class Form extends React.Component {
                 .then(str => { // console.log(str);
                     let parser = new window.DOMParser()
                     let xml = parser.parseFromString(str, "text/xml");
- //                   console.log(xml);
-                    let cidade = xml.getElementsByTagName('nome')[0];
-   //                 console.log(cidade);
-                    let UF = xml.getElementsByTagName('uf')[0];
-    //                console.log(UF);
-                    let diaSearch = xml.getElementsByTagName('atualizacao')[0];
-     //               console.log(diaSearch);
-                    let prev = xml.getElementsByTagName('previsao')[0];
-     //               console.log(prev);
-                    let lista = [];
-     //               var tabela = '';
-     //               tabela.push(<thead>{cidade} - {UF} - {diaSearch}}</thead>)
-      //              cidade.childNodes.forEach((obj, index) => {
-     //                  lista.push(<option key={index} value={obj.childNodes[2].childNodes[0].nodeValue}>{obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}</option>)
-     //               });
-
-    //                this.setState({ tabela: {tabela} });
+//                     console.log(xml);
+                    var cidade = xml.getElementsByTagName('nome')[0].firstChild.textContent;
+//                     console.log(cidade);
+                    let UF = xml.getElementsByTagName('uf')[0].firstChild.textContent;
+//                    console.log(UF);
+                    let diaSearch = xml.getElementsByTagName('atualizacao')[0].firstChild.textContent;
+//                    console.log(diaSearch);
+                    let hoje = this.formatData(xml.getElementsByTagName('previsao')[0].getElementsByTagName('dia')[0].firstChild.nodeValue);
+//                    console.log(hoje);
+                    let condhoje = this.getTempo(xml.getElementsByTagName('previsao')[0].getElementsByTagName('tempo')[0].firstChild.nodeValue);
+//                    console.log(condhoje);
+                    let maxhoje = xml.getElementsByTagName('previsao')[0].getElementsByTagName('maxima')[0].firstChild.nodeValue;
+//                    console.log(maxhoje);                    
+                    let amanha = xml.getElementsByTagName('previsao')[1].getElementsByTagName('dia')[0].firstChild.nodeValue;
+                    console.log(amanha);
+                    let condicao = [];
+/*                    condicao.childNodes.forEach((obj, index) => {
+                        let lista = [];
+                        lista.push(
+                            <option key={index} 
+                            value={obj.childNodes[2].childNodes[0].nodeValue}>
+                                {obj.childNodes[0].childNodes[0].nodeValue} - {obj.childNodes[1].childNodes[0].nodeValue}
+                            </option>)
+                   }); */
+                    //                this.setState({ tabela: {tabela} });
                 });
-            }
-        };
+        }
+    };
 
-        render(){
-
-            var cidades = this.state.cidades;
-            console.log(cidades);
-     //       var fetchCidades = this.state.fetchCidades;
-            return (
-                <div>
-                    <form onSubmit={this.fetchCidades} >
-                        <div>
-                            <label>Nome:
+    render() {
+        var cidades = this.state.cidades;
+        return (
+            <div>
+                <form onSubmit={this.fetchCidades} >
+                    <div>
+                        <label>Nome:
                             <input type='text' value={this.state.value}
                                 onChange={this.fetchCidades}
                                 placeholder="digite o nome completo"
                             />
-                            </label>
-                        </div>
-                        <div>
-                            <label>Cidades:
-                            <select onClick={this.fetchClima} value={this.state.lista}
-                                onChange={this.fetchClima} defaultValue="Selecione a cidade" >
-
-                                          {cidades}
-
+                        </label>
+                    </div>
+                    <div>
+                        <label>Cidades:
+                            <select onChange={this.fetchClima}>
+                                { cidades }
                             </select>
-                            </label>
-                        </div>
-                        <div>
-                            {this.state.erroMsg}
-                        </div>
-                    </form>
-                </div>
-            );
-        }
-    
-}
+                        </label>
+                    </div>
+                    <div>
+                        {this.state.erroMsg}
+                    </div>
+                </form>
+            </div>
+        );
+    }
 
+}
+                                      

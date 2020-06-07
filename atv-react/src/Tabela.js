@@ -1,4 +1,5 @@
 import React from "react";
+import Form from './Form';
 
 const Tabela = ({tabela}) => {
         return (
@@ -6,7 +7,13 @@ const Tabela = ({tabela}) => {
                 <thead>
                     <tr>
                         <th>
-                            nome
+                        {this.state.cidade}
+                        </th>
+                        <th>
+                        - {this.props.UF}
+                        </th>
+                        <th>
+                        - {this.props.diaSearch}
                         </th>
                     </tr>
                 </thead>
